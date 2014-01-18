@@ -1,36 +1,26 @@
+"""Script for continually downloading new items from an RSS feed and persisting
+them into a pickled file object for later parsing.
+
+TODO: varied sleeptime with exponential backoff
+"""
 
 import cPickle as pickle
-import datetime
-import logging
 import time
 
 import feedparser
 
+import common
+
 
 URL_FEEDSPOT_RSS = 'http://www.feedspot.com/folder/4hvNuV8f/rss'
-FILENAME_RECENT = 'data.p'
 SLEEPTIME_SECS = 60 * 15 # 15 mins
 
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-
-fh = logging.FileHandler('downloader.log')
-fh.setLevel(logging.INFO)
-fh.setFormatter(formatter)
-
-logger.addHandler(ch)
-logger.addHandler(fh)
+logger = common.get_logger(__name__, 'downloader.log')
 
 
 def download():
     try:
-        with open(FILENAME_RECENT, 'r') as fp:
+        with open(common.FILENAME_DATA, 'r') as fp:
             data = pickle.load(fp)
     except IOError:
         logger.warning("IOError while trying to load old data")
@@ -56,7 +46,7 @@ def download():
 
     # TODO: remove older entries (maybe > 36 hours old?)
 
-    with open(FILENAME_RECENT, 'w') as fp:
+    with open(common.FILENAME_DATA, 'w') as fp:
         pickle.dump(data, fp)
         logger.info("Successfully wrote %s entries to file", len(data))
     logger.info("%s new entries added", added)
